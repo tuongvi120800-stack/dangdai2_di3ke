@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>你的中文進步了</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&family=LXGW+WenKai+TC:wght@400;700&display=swap">
+<style>
+/* Layout: một tuyến MRT làm thanh điều hướng, mỗi "ga" là một hoạt động; nội dung một cột, chữ lớn để chiếu lên màn hình lớp */
+:root{
+  --bg:#F3F6F8; --surface:#FFFFFF; --ink:#15212B; --muted:#5B6C79; --line:#D4DDE3;
+  --blue:#0070BD; --red:#D6002A; --green:#00845A; --orange:#E79A00; --brown:#B17A22;
+  --ok:#00845A; --bad:#D6002A; --okbg:#E3F4EC; --badbg:#FCE6EA; --tint:#E6F1F9;
+  --f-ui:"Be Vietnam Pro","Noto Sans TC",system-ui,sans-serif;
+  --f-zh:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-kai:"LXGW WenKai TC","BiauKai","DFKai-SB","Noto Sans TC",serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E151B; --surface:#16212A; --ink:#E7EEF2; --muted:#93A5B2; --line:#2A3844;
+  --blue:#4CA6EA; --red:#FF5B70; --green:#3CC490; --orange:#F7BE45; --brown:#D9A85A;
+  --ok:#3CC490; --bad:#FF5B70; --okbg:#123327; --badbg:#3A1820; --tint:#16293A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E151B; --surface:#16212A; --ink:#E7EEF2; --muted:#93A5B2; --line:#2A3844;
+  --blue:#4CA6EA; --red:#FF5B70; --green:#3CC490; --orange:#F7BE45; --brown:#D9A85A;
+  --ok:#3CC490; --bad:#FF5B70; --okbg:#123327; --badbg:#3A1820; --tint:#16293A; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:16px;line-height:1.55}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.zh{font-family:var(--f-zh)}
+.kai{font-family:var(--f-kai)}
+h1,h2,h3{text-wrap:balance;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+input,select{font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;padding:6px 10px}
+
+/* header */
+.head{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 20px;margin-bottom:18px}
+.head .badge{font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--blue)}
+.head h1{font-family:var(--f-kai);font-size:clamp(30px,5vw,46px);line-height:1.1;font-weight:700}
+.head .vi{color:var(--muted);font-size:15px}
+
+/* MRT line nav */
+.line-nav{overflow-x:auto;margin:0 -4px 22px;padding:4px}
+.line{position:relative;display:grid;grid-template-columns:repeat(5,minmax(92px,1fr));min-width:470px}
+.line::before{content:"";position:absolute;left:8%;right:8%;top:17px;height:6px;border-radius:3px;background:var(--blue)}
+.stn{position:relative;background:none;border:0;padding:0 4px 4px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.stn .dot{width:40px;height:40px;border-radius:50%;background:var(--surface);border:5px solid var(--blue);display:grid;place-items:center;font-weight:700;font-size:13px;color:var(--blue);transition:transform .15s}
+.stn .lbl{font-size:13px;font-weight:600;color:var(--muted);text-align:center;line-height:1.25}
+.stn .lbl b{display:block;font-family:var(--f-zh);font-weight:500;font-size:12px}
+.stn[aria-selected="true"] .dot{background:var(--blue);color:#fff;transform:scale(1.12)}
+.stn[aria-selected="true"] .lbl{color:var(--ink)}
+.stn:hover .dot{transform:scale(1.08)}
+
+.panel{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sub{color:var(--muted);font-size:14px}
+.sec-title{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px}
+.sec-title h2{font-size:22px}
+.chip{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-size:14px;font-weight:600}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.btn{border:0;border-radius:10px;padding:10px 16px;font-weight:600;background:var(--blue);color:#fff}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
+.btn.sm{padding:6px 12px;font-size:14px}
+.btn:disabled{opacity:.45;cursor:default}
+.ico{width:18px;height:18px;vertical-align:-3px}
+.say{border:1.5px solid var(--line);background:var(--surface);border-radius:50%;width:36px;height:36px;display:inline-grid;place-items:center;flex:none}
+
+/* vocab */
+.deck{display:flex;flex-direction:column;align-items:center;gap:16px}
+.deck-slot{width:100%;max-width:820px}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.flip{display:block;perspective:1200px;height:clamp(320px,62vh,560px);width:100%;container-type:size;text-align:center;cursor:pointer;border-radius:12px}
+.flip .in{display:block;position:relative;width:100%;height:100%;transition:transform .4s;transform-style:preserve-3d;-webkit-transform-style:preserve-3d}
+.flip.on .in{transform:rotateY(180deg)}
+.flip .f,.flip .b{position:absolute;inset:0;gap:10px!important;padding:20px!important;border-radius:18px!important;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:8px}
+.flip .f .hz{font-family:var(--f-kai);line-height:1.05;white-space:nowrap}
+.flip .f .no{position:absolute;top:12px;left:16px;font-size:max(14px,4cqh);color:var(--muted);font-variant-numeric:tabular-nums}
+.flip .b{transform:rotateY(180deg);background:var(--tint)}
+.flip .f .py{font-weight:600;color:var(--blue);line-height:1.1;white-space:nowrap}
+.flip .b .ex{font-family:var(--f-zh);line-height:1.35;border-top:2px solid var(--line);padding-top:2.5cqh;margin-top:1cqh;max-width:94%}
+.flip .b .cl{font-size:max(14px,4.5cqh);color:var(--muted)}
+.flip .b .mn{line-height:1.2;font-weight:700}
+@media (prefers-reduced-motion: reduce){.flip .in{transition:none}}
+
+.qbox{display:flex;flex-direction:column;gap:14px}
+.qmeta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.prog{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--blue);transition:width .3s}
+.qtext{font-family:var(--f-zh);font-size:clamp(22px,3.4vw,30px);line-height:1.5}
+.qtext.big{font-family:var(--f-kai);font-size:clamp(48px,9vw,80px);text-align:center}
+.qtext.vi{font-family:var(--f-ui);font-size:clamp(20px,3vw,26px)}
+.opts{display:grid;grid-template-columns:1fr;gap:10px}
+.opt{text-align:left;border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:12px 14px;font-size:clamp(18px,2.6vw,22px);display:flex;gap:12px;align-items:center;min-width:0}
+.opt .k{flex:none;width:30px;height:30px;border-radius:8px;background:var(--tint);color:var(--blue);display:grid;place-items:center;font-weight:700;font-size:15px}
+.opt .t{min-width:0;font-family:var(--f-zh)}
+.opt:hover:not(:disabled){border-color:var(--blue)}
+.opt.ok{border-color:var(--ok);background:var(--okbg)}
+.opt.bad{border-color:var(--bad);background:var(--badbg)}
+.opt:disabled{cursor:default}
+.why{border-left:4px solid var(--orange);background:var(--tint);padding:10px 14px;border-radius:0 10px 10px 0;font-size:15px}
+.why b{color:var(--ink)}
+.done{text-align:center;padding:12px 0}
+.done .score{font-size:56px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--blue);line-height:1}
+
+/* grammar rule */
+.rule{display:grid;gap:6px;font-size:15px}
+.rule .pt{font-family:var(--f-kai);font-size:28px;font-weight:700}
+.rule ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.rule .ex{font-family:var(--f-zh)}
+
+/* reading */
+.dlg{display:grid;gap:8px}
+.ln{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start;padding:8px 6px;border-radius:10px}
+.ln.cur{background:var(--tint)}
+.ln .sp{font-family:var(--f-zh);font-weight:700;font-size:15px;padding-top:4px;white-space:nowrap}
+.ln .sp.a{color:var(--green)} .ln .sp.b{color:var(--red)}
+.ln .tx{font-family:var(--f-zh);font-size:clamp(18px,2.6vw,22px);line-height:1.7;min-width:0}
+.gap{display:inline-flex;flex-direction:column;align-items:center;vertical-align:bottom;margin:0 2px}
+.gap input{font-family:var(--f-zh);font-size:inherit;line-height:1.2;padding:1px 4px;text-align:center;border:0;border-bottom:2px solid var(--blue);border-radius:4px 4px 0 0;background:var(--tint);min-width:0}
+#r-body:not(.pyon) .gap .py{display:none}
+.gap .py{font-size:11px;color:var(--muted);line-height:1.1;font-family:var(--f-ui)}
+.gap.ok input{border-color:var(--ok);background:var(--okbg);color:var(--ok);font-weight:700}
+.gap.bad input{border-color:var(--bad);background:var(--badbg)}
+.gap.shown input{border-color:var(--orange);color:var(--ink);font-weight:700}
+.para{font-family:var(--f-zh);font-size:clamp(18px,2.4vw,21px);line-height:2.1;margin:0;min-width:0;flex:1}
+.cz-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.cz-score{font-weight:700;font-variant-numeric:tabular-nums}
+/* translation */
+.tr-vi{font-size:clamp(20px,3vw,26px);line-height:1.55;font-weight:500}
+.tr-in{width:100%;min-height:76px;font-family:var(--f-zh);font-size:clamp(18px,2.6vw,22px);resize:vertical;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface);color:var(--ink)}
+.tr-ans{display:grid;gap:8px;background:var(--okbg);border-radius:10px;padding:12px 14px}
+.tr-ans .zh{font-size:clamp(20px,3vw,26px);line-height:1.6}
+.tr-hint{background:var(--tint);border-radius:10px;padding:10px 14px;font-size:15px}
+.steps{margin:8px 0 0;padding-left:22px;display:grid;gap:6px}
+.cut{justify-self:center;border:1.5px dashed var(--line);background:transparent;border-radius:999px;padding:2px 12px;font-size:12px;color:var(--muted)}
+.cut.on{border-style:solid;border-color:var(--red);background:var(--red);color:#fff}
+.scene-h{font-weight:700;color:var(--red);font-size:14px;letter-spacing:.04em;text-transform:uppercase;padding-top:6px}
+.scene{border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:8px}
+.scene .lines{font-family:var(--f-zh);font-size:15px;color:var(--muted);line-height:1.6}
+.scene textarea{width:100%;min-height:54px;font:inherit;font-size:15px;border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--surface);color:var(--ink);resize:vertical}
+.prompt{font-size:14px;background:var(--tint);border-radius:8px;padding:10px 12px;line-height:1.5;white-space:pre-wrap}
+.scene .thumb{max-height:140px;border-radius:8px;justify-self:start}
+.slide{margin-top:12px;min-height:220px;border-radius:12px;background:var(--tint);display:grid;place-items:center;overflow:hidden;position:relative}
+.slide img{max-height:62vh;width:auto;max-width:100%;display:block}
+.slide .cap{position:absolute;top:10px;left:10px;background:var(--surface);border-radius:999px;padding:3px 12px;font-weight:700;font-size:14px}
+.tag{display:inline-block;font-family:var(--f-zh);font-weight:700;font-size:13px;color:var(--blue);background:var(--tint);border-radius:6px;padding:2px 8px}
+
+/* builder */
+.tray{display:flex;flex-wrap:wrap;gap:8px;min-height:58px;padding:10px;border-radius:12px;border:2px dashed var(--line)}
+.tray.ans{background:var(--tint);border-style:solid;border-color:transparent}
+.tile{font-family:var(--f-zh);font-size:clamp(18px,2.6vw,22px);border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 12px;box-shadow:0 2px 0 var(--line)}
+.tile:hover{border-color:var(--blue)}
+.res{font-size:16px;font-weight:600}
+.res.ok{color:var(--ok)} .res.bad{color:var(--bad)}
+
+/* speaking */
+.spk{display:grid;gap:10px;text-align:center;padding:10px 0}
+.spk .q{font-family:var(--f-kai);font-size:clamp(30px,5.4vw,48px);line-height:1.35}
+.spk .v{color:var(--muted);font-size:17px}
+.spk .h{display:inline-block;margin:0 auto;font-family:var(--f-zh);font-size:18px;background:var(--tint);border-radius:10px;padding:8px 14px}
+.timer{font-size:44px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.timer.low{color:var(--red)}
+.bingo{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cell{border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 8px;display:flex;flex-direction:column;gap:6px;align-items:stretch;min-width:0}
+.cell .cq{font-family:var(--f-zh);font-size:clamp(15px,2.2vw,19px);font-weight:700;line-height:1.35}
+.cell .cv{font-size:12px;color:var(--muted);line-height:1.3}
+.cell input{width:100%;min-width:0;font-size:14px;padding:4px 8px}
+.cell.got{border-color:var(--green);background:var(--okbg)}
+
+/* team */
+.teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.team{border-radius:12px;padding:12px;border:2px solid var(--c);background:var(--surface);display:flex;flex-direction:column;gap:8px}
+.team .tn{font-weight:700;color:var(--c);display:flex;justify-content:space-between;gap:6px}
+.team .pts{font-size:44px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+.team .row button{flex:1}
+.team.lead{box-shadow:0 0 0 3px var(--c) inset}
+.tbar{height:10px;background:var(--line);border-radius:5px;overflow:hidden}
+.tbar i{display:block;height:100%;background:var(--green);transition:width 1s linear}
+.tbar.low i{background:var(--red)}
+.pick{font-size:clamp(64px,14vw,120px);font-weight:700;text-align:center;font-variant-numeric:tabular-nums;color:var(--red);line-height:1}
+@media (min-width:640px){.opts.two{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.bingo{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <div>
+      <div class="badge">Bài 3 · 當代中文課程 2</div>
+      <h1>你的中文進步了！</h1>
+    </div>
+    <div class="vi">Tiếng Trung của bạn tiến bộ rồi! · Luyện tập trên lớp</div>
+  </header>
+
+  <nav class="line-nav" aria-label="Các hoạt động">
+    <div class="line" role="tablist" id="nav"></div>
+  </nav>
+
+  <!-- 1 VOCAB -->
+  <section class="panel" id="p-vocab" role="tabpanel">
+    <div class="card">
+      <div class="sec-title"><h2>Từ vựng</h2><span class="sub">41 từ · Từ mới I + II</span></div>
+      <div class="row" style="margin-top:12px">
+        <button class="chip" data-vm="cards" aria-pressed="true">Thẻ lật</button>
+        <button class="chip" data-vm="say" aria-pressed="false">Nói từ + đặt câu</button>
+        <button class="chip" data-vm="tr" aria-pressed="false">Dịch Việt → Trung (30 câu)</button>
+      </div>
+    </div>
+    <div id="v-cards">
+      <div class="row" style="margin-bottom:10px">
+        <button class="chip" data-vg="all" aria-pressed="true">Tất cả</button>
+        <button class="chip" data-vg="1" aria-pressed="false">Từ mới I</button>
+        <button class="chip" data-vg="2" aria-pressed="false">Từ mới II</button>
+        <button class="btn ghost sm" id="v-shuffle">Xáo trộn</button>
+      </div>
+      <div class="card deck">
+        <div class="qmeta" style="width:100%"><span id="vd-count"></span><span>Bấm thẻ để lật · phím ← → để chuyển</span></div>
+        <div id="vgrid" class="deck-slot"></div>
+        <div class="row" style="justify-content:center">
+          <button class="btn ghost" id="vd-prev">Thẻ trước</button>
+          <button class="btn ghost" id="vd-say">Nghe</button>
+          <button class="btn" id="vd-next">Rút thẻ tiếp</button>
+        </div>
+      </div>
+    </div>
+    <div class="card" id="v-say" hidden>
+      <p class="sub" style="margin:0 0 6px">Cô bấm rút thẻ. Học sinh được gọi nói từ tiếng Trung tương ứng, rồi đặt một câu với từ đó. Bấm "Hiện đáp án" để cả lớp so.</p>
+      <div class="spk" id="vs-card"></div>
+      <div class="row" style="justify-content:center">
+        <button class="btn" id="vs-next">Rút thẻ ngẫu nhiên</button>
+        <button class="btn ghost" id="vs-show">Hiện đáp án</button>
+        <span class="timer" id="vs-time" style="font-size:32px;margin-left:8px">0:30</span>
+      </div>
+      <div class="tr-ans" id="vs-ans" hidden style="margin-top:14px"></div>
+      <p class="sub" style="text-align:center;margin:10px 0 0" id="vs-count"></p>
+    </div>
+    <div id="v-tr" class="panel" hidden>
+      <div class="card"><div class="row"><span class="sub">30 câu, mỗi câu dùng các từ và ngữ pháp của Bài 3.</span><button class="btn ghost sm" id="tr-shuffle" style="margin-left:auto">Xáo trộn</button></div></div>
+      <div class="card qbox" id="tr-box"></div>
+    </div>
+  </section>
+
+  <!-- 2 READING -->
+  <section class="panel" id="p-read" role="tabpanel" hidden>
+    <div class="card">
+      <div class="sec-title"><h2>Bài khóa</h2><span class="sub" id="r-sub">Nghe bài khoá, gõ chữ còn thiếu vào ô trống</span></div>
+      <div class="row" style="margin-top:12px">
+        <button class="chip" data-rt="dlg" aria-pressed="true">對話 Nghe điền hội thoại</button>
+        <button class="chip" data-rt="txt" aria-pressed="false">短文 Nghe điền đoạn văn</button>
+        <button class="chip" data-rt="story" aria-pressed="false">看圖說故事 Kể chuyện bằng ảnh</button>
+      </div>
+      <div id="r-tools">
+      <div class="cz-bar" style="margin-top:12px">
+        <button class="btn sm" id="r-all">Nghe cả bài</button>
+        <button class="btn ghost sm" id="r-stop">Dừng</button>
+        <label for="r-rate" class="sub">Tốc độ</label>
+        <select id="r-rate"><option value="0.65">Chậm</option><option value="0.8" selected>Vừa</option><option value="1">Thường</option></select>
+        <label class="sub" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="r-py" style="width:auto"> Gợi ý pinyin</label>
+      </div>
+      <div class="cz-bar" style="margin-top:10px">
+        <button class="btn sm" id="r-check">Kiểm tra</button>
+        <button class="btn ghost sm" id="r-show">Hiện đáp án</button>
+        <button class="btn ghost sm" id="r-clear">Làm lại</button>
+        <span class="cz-score" id="r-score" aria-live="polite"></span>
+      </div>
+      </div>
+    </div>
+    <div class="card" id="r-body"></div>
+    <div id="r-story" class="panel" hidden>
+      <div class="card">
+        <h3 style="font-size:19px">Nhiệm vụ nhóm</h3>
+        <ol class="steps">
+          <li><b>Chia đoạn:</b> chia hội thoại thành ít nhất 4 cảnh. Bấm nút <b>Cắt ở đây</b> giữa hai câu để tách cảnh.</li>
+          <li><b>Tạo ảnh:</b> viết mô tả từng cảnh bằng tiếng Việt, sao chép lệnh mẫu sang công cụ AI tạo ảnh (Gemini, ChatGPT, Copilot…). Mỗi cảnh một ảnh.</li>
+          <li><b>Tải ảnh lên</b> ô của từng cảnh để trình chiếu khi lên kể.</li>
+          <li><b>Lên kể:</b> nhìn ảnh, kể lại câu chuyện hoặc tóm tắt hội thoại bằng tiếng Trung, không nhìn bài.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <div class="row"><h3 style="font-size:19px">Bước 1 · Chia cảnh</h3><span class="res" id="st-count" style="margin-left:auto"></span></div>
+        <div class="dlg" id="st-lines" style="margin-top:10px"></div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:19px">Bước 2–3 · Mô tả cảnh, tạo ảnh, tải ảnh</h3>
+        <div id="st-scenes" style="display:grid;gap:12px;margin-top:10px"></div>
+      </div>
+      <div class="card" id="st-show">
+        <div class="row"><h3 style="font-size:19px">Bước 4 · Trình chiếu và kể chuyện</h3>
+          <span class="row" style="margin-left:auto"><button class="btn ghost sm" id="st-prev">Ảnh trước</button><button class="btn sm" id="st-next">Ảnh tiếp</button></span></div>
+        <div class="slide" id="st-slide"></div>
+        <div class="tr-hint" style="margin-top:12px">
+          <b>Khung kể chuyện:</b> <span class="zh">今天早上…／然後…／後來…／最後…</span><br>
+          <b>Phải dùng ít nhất 3 cấu trúc:</b> <span class="zh">差不多、V過、才（ít / muộn）、雖然…但是…、想起來、VV</span><br>
+          <b>Tiêu chí:</b> kể đủ các cảnh theo đúng thứ tự · 1–2 phút · không nhìn bài · mỗi bạn trong nhóm kể ít nhất 1 cảnh.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 GRAMMAR -->
+  <section class="panel" id="p-gram" role="tabpanel" hidden>
+    <div class="card">
+      <div class="sec-title"><h2>Ngữ pháp</h2><span class="sub">Chọn điểm ngữ pháp, đọc quy tắc, rồi làm câu</span></div>
+      <div class="row" style="margin-top:12px" id="g-chips"></div>
+    </div>
+    <div class="card rule" id="g-rule"></div>
+    <div class="card" id="g-quiz"></div>
+  </section>
+
+  <!-- 4 BUILDER -->
+  <section class="panel" id="p-build" role="tabpanel" hidden>
+    <div class="card">
+      <div class="sec-title"><h2>Xếp câu</h2><span class="sub">Bấm từng mảnh theo đúng thứ tự · bấm lại để gỡ</span></div>
+    </div>
+    <div class="card qbox" id="b-box"></div>
+  </section>
+
+  <!-- 5 SPEAK -->
+  <section class="panel" id="p-speak" role="tabpanel" hidden>
+    <div class="card">
+      <div class="sec-title"><h2>Luyện nói</h2><span class="sub">Theo cặp hoặc đi quanh lớp phỏng vấn</span></div>
+      <div class="row" style="margin-top:12px">
+        <button class="chip" data-sm="pair" aria-pressed="true">Hỏi đáp theo cặp</button>
+        <button class="chip" data-sm="bingo" aria-pressed="false">Bingo 你V過…嗎？</button>
+      </div>
+    </div>
+    <div class="card" id="s-pair">
+      <div class="spk" id="s-card"></div>
+      <div class="row" style="justify-content:center;margin-top:8px">
+        <button class="btn" id="s-next">Câu hỏi khác</button>
+        <button class="btn ghost" id="s-say">Nghe câu hỏi</button>
+      </div>
+      <div class="row" style="justify-content:center;margin-top:18px;gap:14px">
+        <div class="timer" id="s-time">1:00</div>
+        <div class="row">
+          <button class="btn ghost sm" data-st="60">60 giây</button>
+          <button class="btn ghost sm" data-st="90">90 giây</button>
+          <button class="btn ghost sm" id="s-stop">Dừng</button>
+        </div>
+      </div>
+      <p class="sub" style="text-align:center;margin:12px 0 0">A hỏi, B trả lời bằng cấu trúc gợi ý, B hỏi lại A. Hết giờ thì đổi cặp.</p>
+    </div>
+    <div class="card" id="s-bingo" hidden>
+      <p class="sub" style="margin:0 0 12px">Đi quanh lớp hỏi <span class="zh">「你V過…嗎？」</span>. Ai trả lời <span class="zh">「我V過…」</span> thì ghi tên vào ô. Mỗi bạn chỉ được ký 1 ô. Đủ một hàng ngang, dọc hoặc chéo thì hô <span class="zh">賓果！</span></p>
+      <div class="bingo" id="bingo"></div>
+      <div class="row" style="margin-top:12px"><span class="res" id="bingo-res"></span><button class="btn ghost sm" id="bingo-reset" style="margin-left:auto">Làm lại</button></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ---------- DATA ---------- */
+const VOCAB=[
+["進步","jìnbù","Vp","tiến bộ",1,"來台灣以後，我的中文進步了。"],["早","zǎo","Vs","sớm",1,"你今天來得真早。"],["考試","kǎoshì","N","bài thi, kỳ thi",1,"明天有考試，我得準備準備。"],["準備","zhǔnbèi","V","chuẩn bị",1,"今天的聽寫，你準備好了嗎？"],
+["考","kǎo","V","thi, kiểm tra",1,"這次聽寫，我考得不錯。"],["聽寫","tīngxiě","N","nghe viết chính tả",1,"老師說明天考聽寫。"],["容易","róngyì","Vs","dễ",1,"我覺得寫漢字不容易。"],["小學","xiǎoxué","N","tiểu học",1,"我小學的時候就開始學英文了。"],
+["漢字","hànzì","N","chữ Hán",1,"日本人從小學就開始學寫漢字。"],["高中","gāozhōng","N","cấp 3",1,"我在越南念過高中。"],["過","guò","Ptc","đã từng",1,"我去過陽明山。"],["才","cái","Adv","mới (có), chỉ mới",1,"我才學了半年中文。"],
+["說話","shuōhuà","V-sep","nói chuyện",1,"他說話說得很快。"],["不夠","búgòu","Adv","chưa đủ",1,"我的中文還不夠流利。"],["流利","liúlì","Vs","lưu loát",1,"她的中文說得很流利。"],["雖然","suīrán","Conj","tuy, mặc dù",1,"雖然很累，但是我很高興。"],
+["環境","huánjìng","N","môi trường",1,"這裡學中文的環境很好。"],["同意","tóngyì","Vst","đồng ý",1,"你說的，我同意。"],["報紙","bàozhǐ","N","báo giấy",1,"我希望能看中文報紙。"],["麵包","miànbāo","N","bánh mì",1,"我早上常常吃麵包。"],
+["演講","yǎnjiǎng","N","bài diễn thuyết",1,"我們一起去聽過一次演講。"],["噢","òu","Ptc","à, ồ",1,"噢，我想起來了。"],["活動中心","huódòng zhōngxīn","","trung tâm hoạt động",1,"活動中心在學校的一樓。"],["想起來","xiǎng qǐlái","","nhớ ra",1,"他叫什麼名字？我想起來了。"],
+["選","xuǎn","V","chọn",2,"你選了哪位老師的課？"],["作業","zuòyè","N","bài tập",2,"今天的作業很多。"],["練習","liànxí","V","luyện tập",2,"我每天都練習寫字。"],["半夜","bànyè","N","nửa đêm",2,"他常常半夜才睡覺。"],
+["高興","gāoxìng","Vs","vui",2,"認識你，我很高興。"],["平常","píngcháng","Adv","bình thường",2,"平常我七點起床。"],["爬山","páshān","V-sep","leo núi",2,"週末我們去爬山吧。"],["認識","rènshì","Vpt","quen biết",2,"我在台灣認識了很多朋友。"],
+["聊天","liáotiān","V-sep","tán gẫu",2,"下了課，我常常跟同學聊天。"],["文化","wénhuà","N","văn hoá",2,"我想多了解台灣文化。"],["廣告","guǎnggào","N","quảng cáo",2,"捷運上有很多廣告。"],["位","wèi","M","vị (lượng từ chỉ người)",2,"那位老師是我的中文老師。"],
+["了解","liǎojiě","Vst","hiểu, tìm hiểu",2,"我不太了解台灣人的生活。"],["生活","shēnghuó","N","cuộc sống",2,"我很喜歡台灣的生活。"],["陽明山","Yángmíng Shān","","núi Dương Minh",2,"陽明山在台北。"],["外國人","wàiguó rén","","người nước ngoài",2,"台灣人對外國人很好。"],
+["一些","yìxiē","","một vài, một số",2,"他告訴我一些台灣的文化。"]
+];
+
+const POINTS={
+ cdd:{n:"差不多",v:"gần như, khoảng, gần xong",r:[
+  "<b>A 和 B 差不多</b>: gần giống nhau. <span class='ex'>我們國家的夏天和這裡差不多。</span>",
+  "<b>V 得差不多了</b>: việc gần xong. <span class='ex'>我的功課寫得差不多了。</span>",
+  "<b>差不多 + V / số lượng</b>: khoảng, chừng. <span class='ex'>從這裡到捷運站，差不多走十分鐘。</span>",
+  "Trả lời ngắn <b>差不多了。</b> nghĩa là cũng gần xong / tạm ổn rồi."]},
+ guo:{n:"V 過",v:"đã từng (trải nghiệm)",r:[
+  "<b>V + 過</b>: đã từng làm, có kinh nghiệm. <span class='ex'>我去過那個語言中心。</span>",
+  "Phủ định chỉ dùng <b>沒</b>: <span class='ex'>我沒去過法國。</span>",
+  "Câu hỏi: <span class='ex'>他去過日本沒有？／王老師的課，你上過嗎？</span>",
+  "Hay đi với thời gian không cụ thể (以前, 小時候), không đi với 昨天, 上午十點半.",
+  "<b>V過</b> là trải nghiệm có thể lặp lại; <b>V了</b> là một lần cụ thể."]},
+ cai1:{n:"才 ①",v:"chỉ mới (ít hơn mong đợi)",r:[
+  "<b>才 + số lượng</b>: ít hơn người ta nghĩ. <span class='ex'>他才學了半年中文。</span>",
+  "才 đứng thẳng trước số được: <span class='ex'>這本書才五十塊錢。</span> Sách ghi 只 không dùng như vậy.",
+  "Khác 只: 才 còn cho thấy người nói thấy con số đó <b>ít</b>."]},
+ cai2:{n:"才 ②",v:"muộn hơn mong đợi",r:[
+  "<b>Thời gian + 才 + V</b>: xảy ra muộn hơn mong đợi. <span class='ex'>我等了十分鐘，捷運才來。</span>",
+  "Ngược với <b>就</b> (sớm hơn mong đợi, thường có 了 cuối câu): <span class='ex'>我等了十分鐘，捷運就來了。</span>",
+  "Không phủ định 才 trực tiếp, dùng <b>不是…才…的</b>: <span class='ex'>我們不是今天才認識的。</span>"]},
+ xqi:{n:"想起來",v:"nhớ ra",r:[
+  "Nhớ ra điều đã quên: <span class='ex'>他的電話，我想起來了。</span>",
+  "Phủ định dùng <b>沒</b>: <span class='ex'>他是誰，我還沒想起來。</span>",
+  "Câu hỏi: <span class='ex'>你想起來了嗎？／想起來了沒有？</span>"]},
+ vv:{n:"VV / ABAB",v:"làm thử, làm chút (giọng nhẹ)",r:[
+  "Lặp động từ cho giọng nhẹ, mang ý \"làm chút, thử\": <span class='ex'>練習練習、認識認識</span>. Một âm tiết: <span class='ex'>看看、走走</span>.",
+  "Động từ hai âm tiết lặp kiểu <b>ABAB</b>, không phải AABB: <span class='ex'>休息休息</span> (không nói 休休息息).",
+  "Đã lặp thì <b>không thêm 一下 / 一點</b>: <span class='ex'>*我得練習練習一下。</span>",
+  "Không phủ định trực tiếp được (<span class='ex'>*我不練習練習</span>). Chỉ gặp 不VV trong câu hỏi tu từ hoặc câu điều kiện: <span class='ex'>你怎麼不準備準備呢？</span>"]},
+ sr:{n:"雖然…但是…",v:"tuy… nhưng…",r:[
+  "<span class='ex'>雖然我只來了半年，但是我知道我的中文進步了。</span>",
+  "Chủ ngữ đứng trước hoặc sau 雖然 đều được: <span class='ex'>他雖然…／雖然他…</span>",
+  "Vế sau hay có <b>還 / 也</b>: <span class='ex'>他雖然學了一年，但是還說得不流利。</span>",
+  "Không ghép 雖然 với 所以."]}
+};
+
+/* first option is always the correct one; options are shuffled when shown */
+const GRAM=[
+{p:"cdd",q:"我的作業寫得＿＿了，再寫十分鐘就寫完了。",o:["差不多","才","過"],w:"V得差不多了 = gần xong. Vế sau \"10 phút nữa là xong\" cho thấy việc sắp hoàn thành."},
+{p:"cdd",q:"哥哥一百七十公分，弟弟一百六十九公分，他們＿＿高。",o:["差不多","才","過"],w:"差不多 + Vs = gần như nhau (cao gần bằng nhau)."},
+{p:"cdd",q:"從學校到捷運站，＿＿走十分鐘。",o:["差不多","想起來","過"],w:"差不多 trước động từ/số lượng = khoảng, chừng."},
+{p:"cdd",q:"A：旅行的東西都準備好了嗎？\nB：＿＿了，只有一件衣服還沒買。",o:["差不多","才","過"],w:"Trả lời ngắn 差不多了 = gần xong rồi, chỉ còn chút ít."},
+{p:"cdd",q:"Câu nào ĐÚNG?",o:["我的報告寫得差不多了。","我的報告差不多寫得了。","我的報告寫差不多得了。"],w:"Cấu trúc V + 得 + 差不多了: 差不多 đứng sau 得."},
+{p:"cdd",q:"越南的夏天和台灣的夏天＿＿，都很熱。",o:["差不多","才","過"],w:"A 和 B 差不多 = A và B gần giống nhau."},
+{p:"guo",q:"我＿＿陽明山，那裡很漂亮。",o:["去過","過去","去才"],w:"過 đứng ngay sau động từ: 去過 = đã từng đi."},
+{p:"guo",q:"我＿＿吃過臭豆腐，好吃嗎？",o:["沒","不","才"],w:"Phủ định của V過 chỉ dùng 沒: 沒吃過. (臭豆腐 = đậu phụ thối)"},
+{p:"guo",q:"他＿＿去過日本，所以知道一些日本文化。",o:["以前","明天","現在"],w:"過 đi với thời gian không cụ thể trong quá khứ như 以前, 小時候."},
+{p:"guo",q:"你吃過這家的麵包＿＿？",o:["沒有","不","了"],w:"Câu hỏi: V過…沒有？ hoặc V過…嗎？"},
+{p:"guo",q:"「他點過日本菜。」nghĩa là gì?",o:["Anh ấy từng gọi món Nhật, có kinh nghiệm","Anh ấy gọi món Nhật ở bữa ăn lần trước","Anh ấy chưa bao giờ gọi món Nhật"],w:"V過 = trải nghiệm đã có. Nếu muốn nói một lần cụ thể (bữa lần trước) thì dùng 他點了日本菜."},
+{p:"guo",q:"Câu nào ĐÚNG?",o:["我學過兩次西班牙文。","我學兩次過西班牙文。","我過學兩次西班牙文。"],w:"Thứ tự: V + 過 + số lần + tân ngữ."},
+{p:"cai1",q:"這支手機＿＿一千塊，不貴。",o:["才","只","過"],w:"才 đứng thẳng trước số lượng: 才一千塊 = mới có 1000 đồng. Theo sách, 只 không dùng trực tiếp trước số như vậy."},
+{p:"cai1",q:"「法國，我才去過一次。」nghĩa là gì?",o:["Tôi mới đi Pháp có một lần (ít)","Tôi vừa mới đi Pháp về","Tôi đi Pháp nhiều lần rồi"],w:"才 + số lượng = chỉ mới, ít hơn người ta nghĩ."},
+{p:"cai1",q:"從這裡到捷運站＿＿走五分鐘，很近。",o:["才","沒","過"],w:"才 + số lượng: chỉ mới 5 phút, gần."},
+{p:"cai1",q:"A：你常去貓空喝茶嗎？\nB：不常，我＿＿去過兩次。",o:["才","沒","很"],w:"不常 → chỉ mới đi 2 lần: 才去過兩次."},
+{p:"cai1",q:"他＿＿學了兩個星期的中文，可是說得很好。",o:["才","過","想起來"],w:"才學了兩個星期 = mới học có 2 tuần (ít)."},
+{p:"cai2",q:"我們八點上課，田中今天早上十點＿＿來。",o:["才","就","過"],w:"Thời gian + 才 + V = muộn hơn mong đợi. 就 là sớm hơn mong đợi nên không hợp."},
+{p:"cai2",q:"平常要等十分鐘捷運，今天我等了五分鐘，捷運＿＿來了。",o:["就","才","過"],w:"Sớm hơn bình thường → 就 (thường có 了 cuối câu)."},
+{p:"cai2",q:"他昨天半夜十二點多＿＿睡覺，所以今天很累。",o:["才","就","過"],w:"12 giờ đêm mới ngủ = muộn → 才."},
+{p:"cai2",q:"Câu nào ĐÚNG?",o:["我們不是今天才認識的。","我們今天不才認識的。","我們才不今天認識的。"],w:"Không phủ định 才 trực tiếp, dùng 不是…才…的."},
+{p:"cai2",q:"紐約去年十一月就下雪了，今年十二月＿＿下雪。",o:["才","就","過"],w:"Năm nay tuyết rơi muộn hơn năm ngoái → 才."},
+{p:"cai2",q:"馬安同四點下課，可是七點＿＿回家。",o:["才","就","過"],w:"Tan học 4 giờ mà 7 giờ mới về → muộn → 才."},
+{p:"xqi",q:"A：你記得他叫什麼名字嗎？\nB：噢，我＿＿了，他姓王。",o:["想起來","想過","起來想"],w:"想起來了 = nhớ ra rồi."},
+{p:"xqi",q:"他是誰？我還＿＿。",o:["沒想起來","不想起來","想起來沒"],w:"Phủ định: 沒想起來. 不想起來 lại thành nghĩa khác (không muốn dậy)."},
+{p:"xqi",q:"我們見過面，你想起來了＿＿？",o:["嗎","不","才"],w:"Câu hỏi: 想起來了嗎？ hoặc 想起來了沒有？"},
+{p:"xqi",q:"Câu nào ĐÚNG?",o:["那位小姐姓張，我想起來了。","我想起來那位小姐了姓張。","那位小姐姓張，我起來想了。"],w:"Nói điều được nhớ ra trước, rồi 我想起來了."},
+{p:"vv",q:"我很累，我得＿＿。",o:["休息休息","休休息息","休息休息一下"],w:"Động từ hai âm tiết lặp ABAB: 休息休息. Đã lặp thì không thêm 一下."},
+{p:"vv",q:"同學生病了，我們得＿＿她。",o:["關心關心","關關心心","關心關心一點"],w:"ABAB: 關心關心. Không thêm 一點."},
+{p:"vv",q:"放假的時候，我想去＿＿故宮。",o:["參觀參觀","參參觀觀","參觀參觀一下"],w:"ABAB: 參觀參觀 = đi tham quan chút."},
+{p:"vv",q:"Câu nào ĐÚNG?",o:["下星期要考試，你怎麼不準備準備呢？","下星期要考試，我不準備準備。","下星期要考試，我準備準備一下。"],w:"Không nói 我不VV. 不VV chỉ dùng trong câu hỏi tu từ như 怎麼不VV呢. Đã lặp thì không thêm 一下."},
+{p:"vv",q:"「你應該多認識認識一些台灣朋友。」認識認識 làm câu nói thế nào?",o:["Nhẹ nhàng, mang tính gợi ý","Mạnh hơn, như ra lệnh","Thành câu phủ định"],w:"Lặp động từ làm giọng nhẹ đi, nghe như lời khuyên."},
+{p:"sr",q:"＿＿我只來了半年，但是我的中文進步了。",o:["雖然","因為","所以"],w:"雖然…但是… = tuy… nhưng…"},
+{p:"sr",q:"他雖然學了一年中文，＿＿還說得不夠流利。",o:["但是","因為","就"],w:"雖然 đi cặp với 但是."},
+{p:"sr",q:"Câu nào ĐÚNG?",o:["我雖然很累，但是很高興。","我很累雖然，但是很高興。","雖然我很累，所以很高興。"],w:"雖然 đứng đầu vế (trước hoặc sau chủ ngữ). Không ghép 雖然 với 所以."}
+];
+
+const BUILD=[
+{t:["我","今天","是","搭捷運","來的"],a:["我今天是搭捷運來的"],d:"我今天是搭捷運來的。",v:"Hôm nay tôi đi MRT đến."},
+{t:["今天的考試","我","準備得","差不多了"],a:["今天的考試我準備得差不多了"],d:"今天的考試，我準備得差不多了。",v:"Bài thi hôm nay, tôi chuẩn bị gần xong rồi."},
+{t:["我","在美國","念高中的時候","就","學過了"],a:["我在美國念高中的時候就學過了"],d:"我在美國念高中的時候就學過了。",v:"Hồi học cấp 3 ở Mỹ tôi đã học rồi."},
+{t:["我","才","學了","半年"],a:["我才學了半年"],d:"我才學了半年。",v:"Tôi mới học có nửa năm."},
+{t:["雖然","我","只來了半年","但是","我的中文","進步了"],a:["雖然我只來了半年但是我的中文進步了","我雖然只來了半年但是我的中文進步了"],d:"雖然我只來了半年，但是我的中文進步了。",v:"Tuy tôi mới đến nửa năm nhưng tiếng Trung của tôi đã tiến bộ."},
+{t:["我","沒","去過","法國"],a:["我沒去過法國"],d:"我沒去過法國。",v:"Tôi chưa từng đi Pháp."},
+{t:["他","是","昨天","才","到台北的"],a:["他是昨天才到台北的"],d:"他是昨天才到台北的。",v:"Hôm qua anh ấy mới đến Đài Bắc."},
+{t:["我","等了十分鐘","捷運","才","來"],a:["我等了十分鐘捷運才來"],d:"我等了十分鐘，捷運才來。",v:"Tôi đợi 10 phút MRT mới đến."},
+{t:["我們","不是","今天","才","認識的"],a:["我們不是今天才認識的"],d:"我們不是今天才認識的。",v:"Chúng tôi đâu phải hôm nay mới quen nhau."},
+{t:["那位小姐","姓張","我","想起來了"],a:["那位小姐姓張我想起來了"],d:"那位小姐姓張，我想起來了。",v:"Cô ấy họ Trương, tôi nhớ ra rồi."},
+{t:["你","應該","多","認識認識","一些","台灣朋友"],a:["你應該多認識認識一些台灣朋友"],d:"你應該多認識認識一些台灣朋友。",v:"Bạn nên làm quen thêm vài người bạn Đài Loan."},
+{t:["從這裡","到捷運站","差不多","走","十分鐘"],a:["從這裡到捷運站差不多走十分鐘"],d:"從這裡到捷運站，差不多走十分鐘。",v:"Từ đây đến ga MRT đi bộ khoảng 10 phút."}
+,
+{t:["我們國家的夏天","和","這裡","差不多"],a:["我們國家的夏天和這裡差不多"],d:"我們國家的夏天和這裡差不多。",v:"Mùa hè ở nước tôi gần giống ở đây."},
+{t:["我的功課","寫得","差不多","了"],a:["我的功課寫得差不多了"],d:"我的功課寫得差不多了。",v:"Bài tập của tôi làm gần xong rồi."},
+{t:["哥哥","和","弟弟","差不多","高"],a:["哥哥和弟弟差不多高","弟弟和哥哥差不多高"],d:"哥哥和弟弟差不多高。",v:"Anh trai và em trai cao gần bằng nhau."},
+{t:["他","在越南","住過","三年"],a:["他在越南住過三年"],d:"他在越南住過三年。",v:"Anh ấy từng sống ở Việt Nam ba năm."},
+{t:["你","去過","日本","沒有"],a:["你去過日本沒有"],d:"你去過日本沒有？",v:"Bạn đã từng đi Nhật Bản chưa?"},
+{t:["我","以前","沒","學過","中文"],a:["我以前沒學過中文","以前我沒學過中文"],d:"我以前沒學過中文。",v:"Trước đây tôi chưa từng học tiếng Trung."},
+{t:["這本書","才","五十塊","真便宜"],a:["這本書才五十塊真便宜"],d:"這本書才五十塊，真便宜。",v:"Quyển sách này mới có 50 đồng, rẻ thật."},
+{t:["法國","我","才","去過","一次"],a:["法國我才去過一次","我才去過一次法國"],d:"法國，我才去過一次。",v:"Nước Pháp, tôi mới đi có một lần."},
+{t:["他","昨天","半夜十二點多","才","睡覺"],a:["他昨天半夜十二點多才睡覺","昨天他半夜十二點多才睡覺"],d:"他昨天半夜十二點多才睡覺。",v:"Hôm qua hơn 12 giờ đêm anh ấy mới ngủ."},
+{t:["你","現在","才來","大家","等你","很久了"],a:["你現在才來大家等你很久了"],d:"你現在才來，大家等你很久了。",v:"Giờ bạn mới đến, mọi người đợi bạn lâu lắm rồi."},
+{t:["我","等了十分鐘","捷運","就","來了"],a:["我等了十分鐘捷運就來了"],d:"我等了十分鐘，捷運就來了。",v:"Tôi đợi 10 phút là MRT đến rồi."},
+{t:["他是誰","我","還","沒想起來"],a:["他是誰我還沒想起來","我還沒想起來他是誰"],d:"他是誰，我還沒想起來。",v:"Anh ấy là ai, tôi vẫn chưa nhớ ra."},
+{t:["我們","見過面","你","想起來了","嗎"],a:["我們見過面你想起來了嗎"],d:"我們見過面，你想起來了嗎？",v:"Chúng ta từng gặp nhau rồi, bạn nhớ ra chưa?"},
+{t:["今天學的漢字","我","還得","練習練習"],a:["今天學的漢字我還得練習練習","我還得練習練習今天學的漢字"],d:"今天學的漢字，我還得練習練習。",v:"Chữ Hán học hôm nay, tôi còn phải luyện thêm chút."},
+{t:["這個週末","你","要不要","在家","休息休息"],a:["這個週末你要不要在家休息休息","你這個週末要不要在家休息休息"],d:"這個週末，你要不要在家休息休息？",v:"Cuối tuần này bạn có muốn ở nhà nghỉ ngơi chút không?"},
+{t:["你","怎麼","不","準備準備","呢"],a:["你怎麼不準備準備呢"],d:"你怎麼不準備準備呢？",v:"Sao bạn không chuẩn bị chút đi?"},
+{t:["雖然","有點累","但是","他","很高興"],a:["雖然有點累但是他很高興","雖然他有點累但是很高興"],d:"雖然有點累，但是他很高興。",v:"Tuy hơi mệt nhưng anh ấy rất vui."},
+{t:["他們","一有空","就","搭捷運","去逛逛"],a:["他們一有空就搭捷運去逛逛"],d:"他們一有空，就搭捷運去逛逛。",v:"Hễ rảnh là họ đi MRT đi dạo."}
+
+];
+
+const SPEAK=[
+{q:"你學中文學了多久了？",v:"Bạn học tiếng Trung bao lâu rồi?",h:"我才學了…／我學了差不多…"},
+{q:"你去過台灣哪些地方？",v:"Bạn đã đi những nơi nào ở Đài Loan?",h:"我去過…，還沒去過…"},
+{q:"你吃過什麼台灣小吃？",v:"Bạn đã ăn món ăn vặt Đài Loan nào? (小吃 = món ăn vặt)",h:"我吃過…，沒吃過…"},
+{q:"今天的作業，你寫得怎麼樣了？",v:"Bài tập hôm nay bạn làm tới đâu rồi?",h:"我寫得差不多了／我才寫了…"},
+{q:"你昨天晚上幾點睡覺？",v:"Tối qua mấy giờ bạn ngủ?",h:"我…點才睡覺／我…點就睡覺了"},
+{q:"來台灣以後，你的中文進步了嗎？",v:"Từ khi đến Đài Loan, tiếng Trung của bạn có tiến bộ không?",h:"雖然…，但是…"},
+{q:"週末你平常做什麼？",v:"Cuối tuần bạn thường làm gì?",h:"我有時候…，有時候…"},
+{q:"你在台灣認識了一些台灣朋友嗎？",v:"Ở Đài Loan bạn đã quen vài người bạn Đài Loan chưa?",h:"我認識了…／我才認識…"},
+{q:"你覺得說中文難不難？",v:"Bạn thấy nói tiếng Trung có khó không?",h:"雖然…，但是…"},
+{q:"你的國家的天氣跟台灣差不多嗎？",v:"Thời tiết nước bạn có giống Đài Loan không?",h:"…跟…差不多／不太一樣"},
+{q:"你最近很累，應該做什麼？",v:"Dạo này bạn mệt, nên làm gì?",h:"我得休息休息／我想…"},
+{q:"你在台灣看過醫生嗎？",v:"Ở Đài Loan bạn đã đi khám bác sĩ chưa?",h:"我看過…／我沒看過…"},
+{q:"你打算在台灣住多久？",v:"Bạn định sống ở Đài Loan bao lâu?",h:"差不多…年"},
+{q:"你的實習，做得習慣了嗎？",v:"Việc thực tập của bạn, đã quen chưa? (實習 = thực tập)",h:"差不多了／還沒…，才…"},
+{q:"小學的時候，你學過什麼？",v:"Hồi tiểu học bạn đã học gì?",h:"我小時候學過…"},
+{q:"你等公車，平常要等多久？",v:"Bạn chờ xe buýt thường phải chờ bao lâu?",h:"差不多…分鐘／…分鐘才來"}
+];
+
+const BINGO=[
+["去過陽明山","đã từng đi núi Dương Minh"],["吃過臭豆腐","đã từng ăn đậu phụ thối"],["坐過高鐵","đã từng đi tàu cao tốc"],
+["去過夜市","đã từng đi chợ đêm"],["參觀過故宮","đã từng tham quan Cố Cung"],["看過中文報紙","đã từng đọc báo tiếng Trung"],
+["爬過山","đã từng leo núi"],["學過英文","đã từng học tiếng Anh"],["在台灣看過醫生","đã từng khám bác sĩ ở Đài Loan"]
+];
+
+const DLG=[
+["a","田中","早，妳今天來得真{早}。"],
+["b","如玉","是啊！我今天是搭{捷運}來的。"],
+["a","田中","今天的{考試}，妳{準備}了嗎？"],
+["b","如玉","準備得{差不多}了，應該可以{考}得不錯。你覺得{聽寫}很{容易}吧？"],
+["a","田中","是啊，日本人從{小學}就開始學寫{漢字}。"],
+["b","如玉","我現在也覺得寫字不{難}，因為我在美國念{高中}的時候就學{過}了。"],
+["a","田中","妳在這個語言中心學了{多久}了？"],
+["b","如玉","我{才}學了半年，你呢？"],
+["a","田中","我來了快一年了，可是我{說話}，還說得{不夠}{流利}。"],
+["b","如玉","{雖然}我只來了半年，{但是}我知道我的中文{進步}了。"],
+["a","田中","我覺得在說中文的{環境}裡學中文，進步得比較{快}。"],
+["b","如玉","我{同意}。我希望回國的時候能看中文{報紙}。"],
+["a","田中","我想妳一定可以。今天{下了課}，妳要去哪裡？"],
+["b","如玉","我要去{活動中心}跟{語言交換}的朋友{見面}。"],
+["a","田中","妳說的活動中心在哪裡？"],
+["b","如玉","在一樓有{麵包}店的那棟樓裡面，我們一起去聽{過}一次{演講}，{記得}嗎？"],
+["a","田中","噢，我{想起來}了。"]
+];
+const TXT=[
+"馬安同到師大來學中文，他{選}了每天上三個小時的課，下了課要寫{作業}，還要{準備}第二天的課。馬安同剛開始學寫中國字，覺得真{難}，所以每天都{練習}寫字，常常{半夜}十二點多{才}睡覺。{雖然}有點累，{但是}他很{高興}現在會寫很多字了。",
+"週末，馬安同比{平常}輕鬆多了。他{有時候}搭捷運去貓空喝茶，有時候坐公車去{陽明山}{爬山}。爬山的時候，他{認識}了很多台灣人。台灣人對{外國人}很好，常常跟馬安同{聊天}，告訴他{一些}台灣的{文化}。",
+"馬安同有一個{語言交換}的朋友，他們一有空，就拿著地圖搭捷運去{逛逛}。安同喜歡看捷運上的{廣告}，要是有沒學{過}的字，他就會問那{位}朋友怎麼說。他覺得到處{走走}，可以{了解}台灣人的{生活}，也可以{練習練習}中文，哪裡都能學中文，真是不錯。"
+];
+const PY_EXTRA={"捷運":"jiéyùn","難":"nán","多久":"duōjiǔ","快":"kuài","下了課":"xià le kè","語言交換":"yǔyán jiāohuàn","見面":"jiànmiàn","記得":"jìde","有時候":"yǒu shíhòu","逛逛":"guàngguang","走走":"zǒuzou","練習練習":"liànxí liànxí","但是":"dànshì","差不多":"chàbùduō"};
+
+const TRANS=[
+{p:"cdd",v:"Bài tập về nhà hôm nay mình đã làm gần xong rồi, chỉ còn hai câu cuối chưa làm thôi, nên tối nay mình có thể đi chợ đêm với các bạn.",z:"今天的作業我寫得差不多了，只有最後兩題還沒寫，所以今天晚上我可以跟朋友去夜市。",h:"V得差不多了 · 只有…還沒… · 夜市 = chợ đêm"},
+{p:"cdd",v:"Mùa hè ở nước mình và mùa hè ở Cao Hùng gần giống nhau, đều rất nóng, nhưng mùa đông ở Đài Loan thì lạnh hơn nước mình nhiều.",z:"我們國家的夏天和高雄的夏天差不多，都很熱，可是台灣的冬天比我們國家冷多了。",h:"A和B差不多 · A比B + Vs + 多了"},
+{p:"cdd",v:"Từ trường mình đến ga tàu điện ngầm đi bộ khoảng mười lăm phút, nếu đi xe buýt thì chỉ mất khoảng năm phút, nhưng xe buýt không nhiều lắm.",z:"從我們學校到捷運站，差不多走十五分鐘，要是坐公車，差不多五分鐘，可是公車不太多。",h:"從…到… · 差不多 + V/số lượng · 要是…"},
+{p:"cdd",v:"A hỏi: Đồ ăn Tết bạn đã chuẩn bị xong hết chưa? B trả lời: Gần xong rồi, chỉ còn bánh mì là chưa mua, ngày mai mình sẽ đi mua.",z:"A：你新年要吃的東西都準備好了嗎？B：差不多了，只有麵包還沒買，明天我會去買。",h:"Trả lời ngắn 差不多了 · 只有…還沒…"},
+{p:"cdd",v:"Mình đã học tiếng Trung khoảng một năm rồi, nhưng nói vẫn chưa đủ lưu loát, nên ngày nào mình cũng nói chuyện phiếm với bạn Đài Loan.",z:"我差不多學了一年的中文了，可是說得還不夠流利，所以我每天都跟台灣朋友聊天。",h:"差不多 + V + thời lượng · 說得還不夠流利"},
+{p:"guo",v:"Hồi học cấp ba ở Việt Nam, mình đã từng học tiếng Trung một năm, nên bây giờ mình thấy viết chữ Hán không khó lắm.",z:"我在越南念高中的時候學過一年中文，所以現在我覺得寫漢字不太難。",h:"…的時候 · V過 + thời lượng + tân ngữ"},
+{p:"guo",v:"Mình chưa từng đi núi Dương Minh, cũng chưa từng đi Cố Cung, kỳ nghỉ năm nay mình muốn đi Đài Bắc tham quan một chút.",z:"我沒去過陽明山，也沒去過故宮，今年放假的時候，我想去台北參觀參觀。",h:"沒V過 · 也沒V過 · 參觀參觀"},
+{p:"guo",v:"Bạn đã từng ăn bánh mì của tiệm ở tầng một chưa? Mình đã ăn hai lần rồi, bánh mì ở đó vừa rẻ vừa ngon.",z:"你吃過一樓那家店的麵包沒有？我吃過兩次，那裡的麵包又便宜又好吃。",h:"V過…沒有？ · V過 + số lần · 又…又…"},
+{p:"guo",v:"Trước đây anh ấy đã từng sống ở Nhật Bản ba năm, nên anh ấy rất hiểu văn hoá Nhật Bản, còn biết viết rất nhiều chữ Hán.",z:"他以前在日本住過三年，所以他很了解日本文化，還會寫很多漢字。",h:"以前 + 在…V過 + thời lượng · 了解"},
+{p:"guo",v:"Ở Đài Loan bạn đã từng đi khám bác sĩ chưa? Mình thì chưa từng đi, nên mình không biết phải chuẩn bị những gì.",z:"你在台灣看過醫生嗎？我沒看過，所以我不知道要準備什麼。",h:"V過嗎？ · 沒V過"},
+{p:"cai1",v:"Mình mới đến Đài Loan có ba tháng, mới quen được có hai người bạn Đài Loan, nhưng mình rất thích cuộc sống ở đây.",z:"我才來台灣三個月，才認識兩個台灣朋友，可是我很喜歡這裡的生活。",h:"才 + V + số lượng (ít hơn mong đợi)"},
+{p:"cai1",v:"Cái điện thoại này mới có một nghìn tệ, không đắt chút nào, bạn mình đã mua hai cái, một cái tặng cho mẹ cô ấy.",z:"這支手機才一千塊，一點也不貴，我朋友買了兩支，一支給她媽媽。",h:"才 + số tiền · 一點也不 + Vs"},
+{p:"cai1",v:"Quyển sách này mình mới đọc được có mười trang, vì tuần này mình phải chuẩn bị thi, không có thời gian đọc sách.",z:"這本書我才看了十頁，因為這個星期我得準備考試，沒有時間看書。",h:"Tân ngữ đưa lên đầu · 才V了 + số lượng · 頁 = trang"},
+{p:"cai1",v:"Cậu ấy mới học tiếng Trung có nửa năm, nhưng nói rất lưu loát, vì ngày nào cậu ấy cũng nói chuyện phiếm với các bạn cùng lớp người Đài Loan.",z:"他才學了半年中文，可是說得很流利，因為他每天都跟台灣同學聊天。",h:"才學了半年 · V得很流利"},
+{p:"cai1",v:"Đi tàu điện ngầm từ đây đến trung tâm hoạt động chỉ mất có năm phút thôi, gần lắm, chúng ta đi bộ ra ga đi.",z:"從這裡搭捷運到活動中心才五分鐘，很近，我們走到捷運站吧。",h:"從…搭捷運到… · 才 + thời gian · 吧"},
+{p:"cai2",v:"Chúng ta tám giờ vào học, nhưng hôm nay mười giờ cậu ấy mới đến, vì tối qua hơn mười hai giờ đêm cậu ấy mới đi ngủ.",z:"我們八點上課，可是他今天十點才來，因為他昨天半夜十二點多才睡覺。",h:"Thời gian + 才 + V (muộn hơn mong đợi)"},
+{p:"cai2",v:"Mình đợi tàu điện ngầm mười lăm phút thì tàu mới đến, bình thường chỉ cần đợi năm phút thôi, nên hôm nay mình đến lớp muộn.",z:"我等了十五分鐘，捷運才來，平常只要等五分鐘，所以我今天來晚了。",h:"V了 + thời lượng，…才… · 平常"},
+{p:"cai2",v:"Hôm qua anh ấy mới đến Cao Hùng, nên hôm nay anh ấy vẫn chưa biết đi từ ký túc xá đến trường như thế nào.",z:"他是昨天才到高雄的，所以他今天還不知道從宿舍怎麼去學校。",h:"是…才…的 · 宿舍 = ký túc xá"},
+{p:"cai2",v:"Chúng mình đâu phải hôm nay mới quen nhau, chúng mình đã quen nhau từ ba năm trước, hồi còn học cấp ba ở Việt Nam.",z:"我們不是今天才認識的，是三年前在越南念高中的時候就認識的。",h:"不是…才…的 · 是…就…的"},
+{p:"cai2",v:"Bình thường mình bốn giờ tan học là về nhà ngay, nhưng hôm nay mình phải ở lại trường làm bài tập, bảy giờ mình mới về nhà.",z:"平常我四點下課就回家了，可是今天我得在學校寫作業，七點才回家。",h:"就 (sớm) ↔ 才 (muộn) · 得 = phải"},
+{p:"xqi",v:"Cô gái đó là bạn học cấp ba của mình, sáng nay gặp nhau mình không nhớ ra, bây giờ mình mới nhớ ra tên cô ấy.",z:"那位小姐是我的高中同學，早上見面的時候我沒想起來，現在我才想起來她叫什麼名字。",h:"沒想起來 · 才想起來"},
+{p:"xqi",v:"Thầy giáo hỏi vở bài tập của mình đâu rồi, mình nghĩ rất lâu mới nhớ ra là vở bài tập để ở nhà.",z:"老師問我的作業本子在哪裡，我想了很久，才想起來作業本子在家裡。",h:"想了很久 · 才想起來"},
+{p:"xqi",v:"Chúng ta đã từng gặp nhau ở trung tâm hoạt động rồi, còn từng cùng nhau đi nghe một buổi diễn thuyết nữa, bạn nhớ ra chưa?",z:"我們在活動中心見過面，還一起去聽過一次演講，你想起來了嗎？",h:"見過面 · V過一次 · 想起來了嗎？"},
+{p:"xqi",v:"Mình quên mất xe máy của mình đậu ở đâu, đi tìm suốt nửa tiếng mà vẫn chưa nhớ ra, thật là phiền quá đi mất.",z:"我忘了我的機車在哪裡，找了半個小時，還沒想起來，真麻煩。",h:"還沒想起來 · 機車 = xe máy · 麻煩 = phiền"},
+{p:"vv",v:"Hôm nay mình rất mệt, cuối tuần này mình muốn ở nhà nghỉ ngơi một chút, không muốn đi leo núi với các bạn nữa.",z:"今天我很累，這個週末我想在家休息休息，不想跟朋友去爬山了。",h:"休息休息 (ABAB) · 不想…了"},
+{p:"vv",v:"Tuần sau là thi rồi, sao bạn không chuẩn bị một chút đi? Bạn không luyện viết chữ thì làm sao thi nghe viết tốt được?",z:"下個星期就要考試了，你怎麼不準備準備呢？你不練習練習寫字，聽寫怎麼考得好？",h:"怎麼不VV呢？ · 不VV，怎麼…？"},
+{p:"vv",v:"Bạn cùng lớp bị ốm rồi, mấy ngày nay không đến lớp, sau khi tan học chúng ta nên đến quan tâm bạn ấy một chút.",z:"同學生病了，這幾天都沒來上課，下了課以後，我們應該去關心關心她。",h:"關心關心 · 下了課以後"},
+{p:"vv",v:"Lúc rảnh bạn nên ra ngoài đi dạo nhiều hơn, làm quen thêm vài người bạn Đài Loan, như vậy bạn có thể luyện tiếng Trung.",z:"有空的時候，你應該多出去走走，多認識認識一些台灣朋友，這樣就可以練習練習中文。",h:"多 + VV · 走走、認識認識、練習練習"},
+{p:"sr",v:"Tuy bạn ấy mới đến Đài Loan có nửa năm, nhưng tiếng Trung của bạn ấy đã tiến bộ rất nhiều, bây giờ đã đọc được báo tiếng Trung rồi.",z:"雖然她才來台灣半年，但是她的中文進步了很多，現在已經可以看中文報紙了。",h:"雖然…但是… · 才 + thời lượng · 進步了很多"},
+{p:"sr",v:"Tuy mình đã học tiếng Trung hơn một năm rồi, nhưng nói vẫn chưa đủ lưu loát, vì ở nhà mình không có môi trường nói tiếng Trung.",z:"雖然我學中文學了一年多了，但是我說得還不夠流利，因為在家裡我沒有說中文的環境。",h:"雖然…但是…還… · 說中文的環境"}
+];
+
+
+const GTRANS=[
+{p:"cdd",v:"Bài phát biểu ngày mai mình đã chuẩn bị gần xong rồi, tối nay mình muốn luyện tập thêm một chút.",z:"明天的演講我準備得差不多了，今天晚上我想再練習練習。",h:"V得差不多了 · 再 + VV"},
+{p:"cdd",v:"Tiền thuê phòng ở Cao Hùng và ở Đài Trung gần như nhau, nhưng ở Đài Bắc thì đắt hơn nhiều.",z:"高雄和台中的房租差不多，可是台北的貴多了。",h:"A和B差不多 · 房租 = tiền thuê phòng"},
+{p:"cdd",v:"Từ ký túc xá đến xưởng thực tập đi xe máy mất khoảng hai mươi phút.",z:"從宿舍到工廠，騎機車差不多二十分鐘。",h:"從…到… · 差不多 + thời gian · 騎機車 = đi xe máy"},
+{p:"guo",v:"Bạn đã từng ăn món Nhật chưa? Mình chưa ăn bao giờ, cuối tuần này chúng ta cùng đi ăn nhé.",z:"你吃過日本菜嗎？我沒吃過，這個週末我們一起去吃吧。",h:"V過嗎？ · 沒V過 · 吧"},
+{p:"guo",v:"Hồi nhỏ mình đã từng học bơi, nhưng bây giờ quên hết rồi.",z:"我小時候學過游泳，可是現在都忘了。",h:"小時候 + V過 · 游泳 = bơi"},
+{p:"guo",v:"Anh ấy đã đến Đài Loan hai lần, nhưng chưa từng đi Đài Nam.",z:"他來過台灣兩次，可是沒去過台南。",h:"V過 + số lần · 沒V過"},
+{p:"cai1",v:"Ly trà sữa trân châu này mới có ba mươi lăm đồng, rẻ quá!",z:"這杯珍珠奶茶才三十五塊，真便宜！",h:"才 + số tiền · 珍珠奶茶 = trà sữa trân châu"},
+{p:"cai1",v:"Mình mới học được có hai mươi chữ Hán, còn cậu ấy đã biết viết hơn một trăm chữ rồi.",z:"我才學了二十個漢字，他已經會寫一百多個字了。",h:"才V了 + số lượng ↔ 已經…了"},
+{p:"cai1",v:"Từ nhà mình đến siêu thị đi bộ mới có ba phút, rất tiện.",z:"從我家到超市走路才三分鐘，很方便。",h:"從…到… · 才 + thời gian · 方便 = tiện"},
+{p:"cai2",v:"Tối qua mình đợi xe buýt nửa tiếng, xe mới tới.",z:"昨天晚上我等了半個小時，公車才來。",h:"V了 + thời lượng，…才 + V"},
+{p:"cai2",v:"Bộ phim bảy giờ bắt đầu mà tám giờ cô ấy mới đến.",z:"電影七點開始，她八點才來。",h:"Thời gian + 才 + V"},
+{p:"cai2",v:"Chúng mình đâu phải năm nay mới đến Đài Loan, năm ngoái chúng mình đã đến rồi.",z:"我們不是今年才來台灣的，我們去年就來了。",h:"不是…才…的 · 就…了"},
+{p:"xqi",v:"Lúc đầu mình không nhớ ra cô ấy là ai, sau đó mới nhớ ra cô ấy là bạn học tiểu học của mình.",z:"我一開始沒想起來她是誰，後來才想起來她是我的小學同學。",h:"沒想起來 · 後來才想起來"},
+{p:"xqi",v:"Mật khẩu wifi là gì nhỉ? Mình nghĩ rất lâu mà vẫn chưa nhớ ra.",z:"網路密碼是什麼？我想了很久，還沒想起來。",h:"還沒想起來 · 密碼 = mật khẩu"},
+{p:"xqi",v:"Bạn nhớ ra chưa? Hôm qua thầy giáo nói chiều thứ Sáu thi nghe viết.",z:"你想起來了嗎？昨天老師說星期五下午考聽寫。",h:"想起來了嗎？"},
+{p:"vv",v:"Thi xong rồi, cuối tuần này chúng ta đi dạo chợ đêm một chút đi.",z:"考完試了，這個週末我們去夜市逛逛吧。",h:"逛逛 (VV) · 吧"},
+{p:"vv",v:"Câu này mình không hiểu lắm, bạn xem giúp mình một chút được không?",z:"這個句子我不太懂，你幫我看看，好嗎？",h:"看看 · 好嗎？"},
+{p:"vv",v:"Mẹ bạn sang Đài Loan, bạn nên đưa mẹ đi núi Dương Minh tham quan một chút.",z:"你媽媽來台灣，你應該帶她去陽明山參觀參觀。",h:"參觀參觀 (ABAB) · 帶 = đưa"},
+{p:"sr",v:"Tuy đi làm thêm rất mệt, nhưng mình học được rất nhiều thứ.",z:"雖然打工很累，但是我學到了很多東西。",h:"雖然…但是… · 打工 = làm thêm"},
+{p:"sr",v:"Tuy món này hơi cay, nhưng rất ngon, bạn ăn thử đi.",z:"雖然這個菜有點辣，但是很好吃，你吃吃看吧。",h:"雖然…但是… · 有點 + Vs"},
+{p:"sr",v:"Tuy cậu ấy là người nước ngoài, nhưng cậu ấy rất hiểu văn hoá Đài Loan.",z:"雖然他是外國人，但是他很了解台灣文化。",h:"雖然…但是… · 了解"}
+];
+
+/* ---------- HELPERS ---------- */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const SPK='<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+let VOICE=null;
+function pickVoice(){try{const vs=speechSynthesis.getVoices();VOICE=vs.find(v=>/zh[-_]TW/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null}catch(e){}}
+try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice}catch(e){}
+function speak(t,rate){try{const u=new SpeechSynthesisUtterance(t.replace(/[{}＿]/g,""));u.lang="zh-TW";u.rate=rate||.85;if(VOICE)u.voice=VOICE;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+const hasTTS=(()=>{try{return "speechSynthesis" in window}catch(e){return false}})();
+function setPressed(sel,el){$$(sel).forEach(b=>b.setAttribute("aria-pressed",b===el?"true":"false"))}
+const store={get(k,d){try{const v=localStorage.getItem("bai3-"+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem("bai3-"+k,JSON.stringify(v))}catch(e){}}};
+
+/* ---------- NAV ---------- */
+const STATIONS=[["vocab","Từ vựng","生詞"],["read","Bài khóa","課文"],["gram","Ngữ pháp","語法"],["build","Xếp câu","排句子"],["speak","Luyện nói","說說看"]];
+$("#nav").innerHTML=STATIONS.map((s,i)=>`<button class="stn" role="tab" id="t-${s[0]}" aria-controls="p-${s[0]}" aria-selected="${i?"false":"true"}" data-go="${s[0]}"><span class="dot">${i+1}</span><span class="lbl">${s[1]}<b>${s[2]}</b></span></button>`).join("");
+function go(id){
+  STATIONS.forEach(s=>{$("#p-"+s[0]).hidden=s[0]!==id;$("#t-"+s[0]).setAttribute("aria-selected",s[0]===id?"true":"false")});
+  store.set("tab",id);
+}
+$$(".stn").forEach(b=>b.onclick=()=>go(b.dataset.go));
+
+/* ---------- 1 VOCAB ---------- */
+let vGroup="all",vOrder=VOCAB.map((_,i)=>i);
+let vPos=0;
+function deck(){return vOrder.filter(i=>vGroup==="all"||String(VOCAB[i][4])===vGroup)}
+function renderCards(){
+  const list=deck();vPos=Math.max(0,Math.min(vPos,list.length-1));const i=list[vPos],w=VOCAB[i];
+  $("#vgrid").innerHTML=`<div class="flip" role="button" tabindex="0" aria-label="${w[0]}, bấm để lật"><div class="in">
+    <div class="f"><span class="no">${i+1}</span><span class="hz" style="font-size:min(56cqh,calc(90cqw / ${w[0].length}))">${w[0]}</span><span class="py" style="font-size:min(14cqh,calc(150cqw / ${w[1].length}))">${w[1]}</span></div>
+    <div class="b">${w[2]?`<span class="cl">${w[2]}</span>`:""}<span class="mn" style="font-size:min(22cqh,calc(300cqw / ${w[3].length}))">${w[3]}</span><span class="ex" style="font-size:min(13cqh,calc(190cqw / ${w[5].length}))">${w[5]}</span></div></div></div>`;
+  const c=$("#vgrid .flip");
+  const flip=()=>{c.classList.toggle("on");if(c.classList.contains("on"))speak(w[5]);else speak(w[0])};
+  c.addEventListener("click",flip);
+  c.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();flip()}});
+  $("#vd-count").textContent=`Thẻ ${vPos+1}/${list.length}`;
+  $("#vd-prev").disabled=vPos===0;$("#vd-next").textContent=vPos<list.length-1?"Rút thẻ tiếp":"Xáo lại bộ thẻ";
+}
+$("#vd-next").onclick=()=>{if(vPos<deck().length-1)vPos++;else{vOrder=shuffle(vOrder);vPos=0}renderCards()};
+$("#vd-prev").onclick=()=>{vPos--;renderCards()};
+$("#vd-say").onclick=()=>{const w=VOCAB[deck()[vPos]];speak($("#vgrid .flip").classList.contains("on")?w[5]:w[0])};
+document.addEventListener("keydown",e=>{if($("#p-vocab").hidden||$("#v-cards").hidden||/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;
+  if(e.key==="ArrowRight")$("#vd-next").click();else if(e.key==="ArrowLeft"&&vPos>0)$("#vd-prev").click()});
+$$("[data-vg]").forEach(b=>b.onclick=()=>{vGroup=b.dataset.vg;vPos=0;setPressed("[data-vg]",b);renderCards()});
+$("#v-shuffle").onclick=()=>{vOrder=shuffle(vOrder);vPos=0;renderCards()};
+vOrder=shuffle(vOrder);renderCards();
+
+/* generic quiz runner (grammar) */
+function runQuiz(box,makeList){
+  let list=makeList(),k=0,score=0;
+  function show(){
+    if(k>=list.length){
+      box.innerHTML=`<div class="done"><div class="sub">Kết quả</div><div class="score">${score}/${list.length}</div><p>${score===list.length?"Đúng hết!":score>=list.length*.7?"Tốt lắm, xem lại câu sai nhé.":"Đọc lại quy tắc rồi làm lại nhé."}</p><button class="btn">Làm lại</button></div>`;
+      box.querySelector("button").onclick=()=>{list=makeList();k=0;score=0;show()};return;
+    }
+    const it=list[k],correct=it.o[0],o=shuffle(it.o);
+    box.innerHTML=`<div class="qbox">
+      <div class="qmeta"><span>Câu ${k+1}/${list.length}${it.p?" · "+POINTS[it.p].n:""}</span><span>Đúng: ${score}</span></div>
+      <div class="prog"><i style="width:${k/list.length*100}%"></i></div>
+      <div class="qtext">${esc(it.q).replace(/\n/g,"<br>").replace(/＿＿/g,"<span style='color:var(--blue)'>＿＿＿</span>")}</div>
+      <div class="opts ${o.every(x=>x.length<14)?"two":""}">${o.map((x,j)=>`<button class="opt" data-v="${esc(x)}"><span class="k">${"ABCD"[j]}</span><span class="t" ${/^[A-ZĐa-zÀ-ỹ]/.test(x)?"style='font-family:var(--f-ui)'":""}>${esc(x)}</span></button>`).join("")}</div>
+      <div class="foot"></div></div>`;
+    box.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+      const right=b.dataset.v===correct;if(right)score++;
+      box.querySelectorAll(".opt").forEach(x=>{x.disabled=true;if(x.dataset.v===correct)x.classList.add("ok")});
+      if(!right)b.classList.add("bad");
+      const full=it.q.replace(/＿＿/,correct);
+      box.querySelector(".foot").innerHTML=`<div class="why"><b>${right?"Đúng rồi.":"Chưa đúng."}</b> ${esc(it.w)}</div>
+        <div class="row" style="margin-top:12px">${!/Câu nào|nghĩa là|làm câu/.test(it.q)?`<button class="say" data-full aria-label="Nghe câu đúng">${SPK}</button>`:""}<button class="btn" data-next style="margin-left:auto">Câu tiếp</button></div>`;
+      const f=box.querySelector("[data-full]");if(f)f.onclick=()=>speak(full.replace(/\n/g,""));
+      box.querySelector("[data-next]").onclick=()=>{k++;show()};
+      box.querySelector("[data-next]").focus();
+    });
+  }
+  show();
+}
+
+/* ---------- 1b TRANSLATION (shared trainer) ---------- */
+function makeTrainer(box,source,opts={}){
+  let list=[],k=0;const draft={},self={};
+  function build(shuf){list=source().map((_,i)=>i);if(shuf)list=shuffle(list);k=0;draw()}
+  function draw(){
+    const items=source(),idx=list[k],it=items[idx];
+    const judged=list.filter(i=>i in self),right=judged.filter(i=>self[i]).length;
+    const markTxt=v=>v?"Đã ghi: đúng":"Đã ghi: chưa đúng";
+    box.innerHTML=`<div class="qmeta"><span>Câu ${k+1}/${list.length}${opts.tag?` · <span class="tag">${POINTS[it.p].n}</span>`:""}</span><span>Tự chấm đúng: ${right}/${judged.length}</span></div>
+      <div class="prog"><i style="width:${(k+1)/list.length*100}%"></i></div>
+      <div class="tr-vi">${esc(it.v)}</div>
+      <textarea class="tr-in" lang="zh-TW" aria-label="Câu tiếng Trung của em" placeholder="Viết câu tiếng Trung vào đây hoặc vào vở…">${esc(draft[idx]||"")}</textarea>
+      <div class="tr-hint" data-r="hint" hidden><b>Gợi ý:</b> <span class="zh">${esc(it.h)}</span></div>
+      <div class="tr-ans" data-r="ans" hidden>
+        <div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div class="zh" style="flex:1;min-width:0">${esc(it.z)}</div><button class="say" data-r="say" aria-label="Nghe đáp án">${SPK}</button></div>
+        <div class="sub">Đây là một cách dịch tham khảo. Câu khác vẫn có thể đúng, hỏi cô nếu không chắc.</div>
+        <div class="row"><span class="sub">Em tự chấm:</span><button class="btn sm" data-r="ok" style="background:var(--ok)">Em dịch đúng</button><button class="btn sm" data-r="no" style="background:var(--bad)">Chưa đúng</button><span class="res" data-r="mark"></span></div>
+      </div>
+      <div class="row">
+        <button class="btn ghost sm" data-r="h">Gợi ý cấu trúc</button>
+        <button class="btn sm" data-r="show">Xem đáp án</button>
+        <span style="margin-left:auto" class="row">
+          <button class="btn ghost sm" data-r="prev" ${k?"":"disabled"}>Câu trước</button>
+          <button class="btn sm" data-r="next" ${k<list.length-1?"":"disabled"}>Câu tiếp</button>
+        </span>
+      </div>`;
+    const q=r=>box.querySelector(`[data-r="${r}"]`);
+    const open=()=>{q("ans").hidden=false;q("show").disabled=true};
+    box.querySelector(".tr-in").oninput=e=>{draft[idx]=e.target.value};
+    q("h").onclick=()=>{q("hint").hidden=!q("hint").hidden};
+    q("show").onclick=()=>{open();speak(it.z)};
+    q("say").onclick=()=>speak(it.z);
+    const mark=v=>{self[idx]=v;draw()};
+    q("ok").onclick=()=>mark(true);q("no").onclick=()=>mark(false);
+    if(idx in self){open();q("mark").className="res "+(self[idx]?"ok":"bad");q("mark").textContent=markTxt(self[idx])}
+    q("prev").onclick=()=>{k--;draw()};q("next").onclick=()=>{k++;draw()};
+  }
+  build(false);
+  return {shuffle:()=>build(true),reset:()=>build(false)};
+}
+const vTrainer=makeTrainer($("#tr-box"),()=>TRANS);
+$("#tr-shuffle").onclick=vTrainer.shuffle;
+
+/* ---------- 1c SAY THE WORD ---------- */
+let vsDeck=[],vsCur=null,vsTimer=null,vsLeft=30;
+function vsDraw(){
+  if(!vsDeck.length)vsDeck=shuffle(VOCAB.map((_,i)=>i));
+  vsCur=vsDeck.pop();const w=VOCAB[vsCur];
+  $("#vs-card").innerHTML=`<div class="q" style="font-family:var(--f-ui);font-weight:700">${esc(w[3])}</div><div class="v">Nói từ tiếng Trung, rồi đặt một câu với từ đó</div>`;
+  $("#vs-ans").hidden=true;$("#vs-show").disabled=false;
+  $("#vs-count").textContent=`Còn ${vsDeck.length}/${VOCAB.length} thẻ chưa rút`;
+  clearInterval(vsTimer);vsLeft=30;$("#vs-time").textContent="0:30";$("#vs-time").classList.remove("low");
+  vsTimer=setInterval(()=>{vsLeft--;$("#vs-time").textContent=fmt(Math.max(vsLeft,0));$("#vs-time").classList.toggle("low",vsLeft<=5);if(vsLeft<=0)clearInterval(vsTimer)},1000);
+}
+$("#vs-next").onclick=vsDraw;
+$("#vs-show").onclick=()=>{if(vsCur==null)return;const w=VOCAB[vsCur];clearInterval(vsTimer);
+  $("#vs-ans").innerHTML=`<div class="row" style="flex-wrap:nowrap"><span class="kai" style="font-size:44px;line-height:1.1">${w[0]}</span><span><b style="color:var(--blue)">${w[1]}</b> ${w[2]?`<span class="sub">(${w[2]})</span>`:""}</span><button class="say" id="vs-s1" aria-label="Nghe từ" style="margin-left:auto">${SPK}</button></div>
+    <div class="row" style="flex-wrap:nowrap;align-items:flex-start"><span class="sub" style="flex:none">Câu mẫu:</span><span class="zh" style="flex:1;min-width:0;font-size:20px">${esc(w[5])}</span><button class="say" id="vs-s2" aria-label="Nghe câu mẫu">${SPK}</button></div>`;
+  $("#vs-ans").hidden=false;$("#vs-show").disabled=true;
+  $("#vs-s1").onclick=()=>speak(w[0]);$("#vs-s2").onclick=()=>speak(w[5]);speak(w[0]);
+};
+
+$$("[data-vm]").forEach(b=>b.onclick=()=>{
+  setPressed("[data-vm]",b);const m=b.dataset.vm;
+  $("#v-cards").hidden=m!=="cards";$("#v-tr").hidden=m!=="tr";$("#v-say").hidden=m!=="say";
+  if(m==="say"&&vsCur==null)vsDraw();
+});
+
+/* ---------- 2 LISTENING CLOZE ---------- */
+const PYMAP=Object.assign({},...VOCAB.map(w=>({[w[0]]:w[1]})),PY_EXTRA);
+let rText="dlg",playing=false;
+function gapHtml(s){return esc(s).replace(/\{(.+?)\}/g,(m,w)=>`<span class="gap"><input type="text" lang="zh-TW" autocomplete="off" data-a="${w}" style="width:${w.length*1.15+.8}em" aria-label="Ô trống"><span class="py">${PYMAP[w]||""}</span></span>`)}
+const plain=s=>s.replace(/[{}]/g,"");
+function renderRead(){
+  stopAll();
+  const units=rText==="dlg"?DLG.map(l=>({who:l,t:l[2]})):TXT.map(t=>({t}));
+  $("#r-body").innerHTML=`<div class="dlg">${units.map((u,i)=>`<div class="ln" data-i="${i}" style="${u.who?"":"grid-template-columns:1fr auto"}">${u.who?`<span class="sp ${u.who[0]}">${u.who[1]}：</span>`:""}<p class="${u.who?"tx":"para"}" style="margin:0">${gapHtml(u.t)}</p><button class="say" aria-label="Nghe ${u.who?"câu":"đoạn"} ${i+1}">${SPK}</button></div>`).join("")}</div>`;
+  $("#r-body").classList.toggle("pyon",$("#r-py").checked);
+  $$("#r-body .ln").forEach((r,i)=>r.querySelector(".say").onclick=()=>playFrom(i,true));
+  const ins=$$("#r-body .gap input");
+  ins.forEach((inp,j)=>{inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();(ins[j+1]||$("#r-check")).focus()}});
+    inp.addEventListener("input",()=>inp.parentElement.classList.remove("ok","bad","shown"))});
+  $("#r-score").textContent=`${ins.length} ô trống`;
+}
+function texts(){return rText==="dlg"?DLG.map(l=>plain(l[2])):TXT.map(plain)}
+function stopAll(){playing=false;try{speechSynthesis.cancel()}catch(e){};$$("#r-body .ln").forEach(x=>x.classList.remove("cur"))}
+function playFrom(i,once){
+  stopAll();const T=texts(),rows=$$("#r-body .ln");playing=true;
+  const step=k=>{
+    if(!playing||k>=T.length||(once&&k>i)){stopAll();return}
+    rows.forEach(x=>x.classList.remove("cur"));rows[k].classList.add("cur");
+    try{const u=new SpeechSynthesisUtterance(T[k]);u.lang="zh-TW";u.rate=+$("#r-rate").value;if(VOICE)u.voice=VOICE;
+      u.onend=()=>setTimeout(()=>step(k+1),350);u.onerror=()=>stopAll();speechSynthesis.speak(u)}catch(e){stopAll()}
+  };
+  step(i);
+}
+const norm=s=>s.replace(/\s/g,"");
+$("#r-all").onclick=()=>playFrom(0,false);
+$("#r-stop").onclick=stopAll;
+$("#r-py").onchange=()=>$("#r-body").classList.toggle("pyon",$("#r-py").checked);
+$("#r-check").onclick=()=>{const ins=$$("#r-body .gap input");let ok=0;
+  ins.forEach(i=>{const g=i.parentElement;g.classList.remove("ok","bad","shown");if(norm(i.value)===i.dataset.a){g.classList.add("ok");ok++}else g.classList.add("bad")});
+  $("#r-score").textContent=`Đúng ${ok}/${ins.length}`};
+$("#r-show").onclick=()=>{$$("#r-body .gap input").forEach(i=>{if(norm(i.value)!==i.dataset.a){i.value=i.dataset.a;i.parentElement.classList.remove("bad");i.parentElement.classList.add("shown")}})};
+$("#r-clear").onclick=renderRead;
+/* ---------- 2b STORY TASK ---------- */
+let cuts=new Set(),sceneDesc={},sceneImg={},slideK=0;
+function scenes(){const out=[];let cur=[];DLG.forEach((l,i)=>{cur.push(i);if(cuts.has(i)&&i<DLG.length-1){out.push(cur);cur=[]}});if(cur.length)out.push(cur);return out}
+function renderStory(){
+  const sc=scenes();
+  let n=0;
+  $("#st-lines").innerHTML=`<div class="scene-h">Cảnh 1</div>`+DLG.map((l,i)=>{
+    let h=`<div class="ln" style="grid-template-columns:auto 1fr"><span class="sp ${l[0]}">${l[1]}：</span><span class="tx" style="font-size:18px">${esc(plain(l[2]))}</span></div>`;
+    if(i<DLG.length-1){h+=`<button class="cut ${cuts.has(i)?"on":""}" data-cut="${i}">${cuts.has(i)?"Đã cắt · bấm để nối lại":"Cắt ở đây"}</button>`;if(cuts.has(i))h+=`<div class="scene-h">Cảnh ${++n+1}</div>`}
+    return h}).join("");
+  $$("[data-cut]").forEach(b=>b.onclick=()=>{const i=+b.dataset.cut;cuts.has(i)?cuts.delete(i):cuts.add(i);renderStory()});
+  const okN=sc.length>=4;
+  $("#st-count").className="res "+(okN?"ok":"bad");
+  $("#st-count").textContent=okN?`${sc.length} cảnh`:`Mới có ${sc.length} cảnh, cần ít nhất 4`;
+  $("#st-scenes").innerHTML=sc.map((s,j)=>{const key=s[0];return `<div class="scene">
+      <div class="row"><b>Cảnh ${j+1}/${sc.length}</b><span class="sub">câu ${s[0]+1}–${s[s.length-1]+1}</span></div>
+      <div class="lines">${s.map(i=>esc(DLG[i][1]+"："+plain(DLG[i][2]))).join("<br>")}</div>
+      <label class="sub" for="sd${key}">Mô tả cảnh bằng tiếng Việt (ai, ở đâu, đang làm gì, cảm xúc)</label>
+      <textarea id="sd${key}" data-sd="${key}" placeholder="Ví dụ: Buổi sáng, Như Ngọc vừa đi tàu điện ngầm đến lớp…">${esc(sceneDesc[key]||"")}</textarea>
+      <div class="prompt" data-pr="${key}"></div>
+      <div class="row"><button class="btn ghost sm" data-cp="${key}">Sao chép lệnh AI</button><span class="sub" data-cpm="${key}"></span>
+        <label class="btn sm" style="margin-left:auto;cursor:pointer">Tải ảnh cảnh ${j+1}<input type="file" accept="image/*" data-up="${key}" hidden></label></div>
+      ${sceneImg[key]?`<img class="thumb" src="${sceneImg[key]}" alt="Ảnh cảnh ${j+1}">`:""}
+    </div>`}).join("");
+  sc.forEach((s,j)=>{const key=s[0];
+    const upd=()=>{box(key).textContent=promptFor(j,sc.length,sceneDesc[key])};
+    const box=k=>$(`[data-pr="${k}"]`);upd();
+    $(`[data-sd="${key}"]`).oninput=e=>{sceneDesc[key]=e.target.value;upd()};
+    $(`[data-cp="${key}"]`).onclick=()=>{const t=promptFor(j,sc.length,sceneDesc[key]),m=$(`[data-cpm="${key}"]`);
+      try{navigator.clipboard.writeText(t).then(()=>{m.textContent="Đã sao chép"},()=>{selectText(box(key));m.textContent="Đã bôi đen, bấm Ctrl+C để chép"})}catch(e){selectText(box(key));m.textContent="Đã bôi đen, bấm Ctrl+C để chép"}};
+    $(`[data-up="${key}"]`).onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{sceneImg[key]=r.result;renderStory()};r.readAsDataURL(f)};
+  });
+  slideK=Math.min(slideK,sc.length-1);renderSlide();
+}
+function selectText(el){try{const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r)}catch(e){}}
+function promptFor(j,total,desc){
+  return `Vẽ tranh minh hoạ phong cách truyện tranh, màu sắc nhẹ nhàng, khung ngang 4:3, không có chữ trong tranh.
+Hai nhân vật giữ nguyên ngoại hình ở mọi tranh: Như Ngọc – nữ sinh người Mỹ khoảng 20 tuổi, tóc nâu dài, áo trắng; Điền Trung – nam sinh người Nhật khoảng 20 tuổi, tóc đen ngắn, áo khoác nâu.
+Bối cảnh chung: một trung tâm dạy tiếng Trung ở Đài Bắc.
+Tranh ${j+1}/${total}: ${desc&&desc.trim()?desc.trim():"[viết mô tả cảnh ở ô bên trên]"}`;
+}
+function renderSlide(){
+  const sc=scenes(),s=sc[slideK],img=s&&sceneImg[s[0]];
+  $("#st-slide").innerHTML=`<span class="cap">Cảnh ${slideK+1}/${sc.length}</span>`+(img?`<img src="${img}" alt="Ảnh cảnh ${slideK+1}">`:`<p class="sub" style="padding:40px 16px;text-align:center">Chưa có ảnh cho cảnh này. Tải ảnh ở Bước 2–3.</p>`);
+  $("#st-prev").disabled=slideK<=0;$("#st-next").disabled=slideK>=sc.length-1;
+}
+$("#st-prev").onclick=()=>{slideK--;renderSlide()};
+$("#st-next").onclick=()=>{slideK++;renderSlide()};
+
+$$("[data-rt]").forEach(b=>b.onclick=()=>{setPressed("[data-rt]",b);const st=b.dataset.rt==="story";
+  $("#r-tools").hidden=st;$("#r-body").hidden=st;$("#r-story").hidden=!st;
+  $("#r-sub").textContent=st?"Chia hội thoại thành cảnh, tạo ảnh bằng AI, rồi lên kể lại":"Nghe bài khoá, gõ chữ còn thiếu vào ô trống";
+  if(st){stopAll();renderStory()}else{rText=b.dataset.rt;renderRead()}});
+renderRead();
+
+/* ---------- 3 GRAMMAR ---------- */
+let gPoint="cdd";
+$("#g-chips").innerHTML=Object.entries(POINTS).map(([k,p])=>`<button class="chip zh" data-gp="${k}" aria-pressed="${k===gPoint}">${p.n}</button>`).join("")+`<button class="chip" data-gp="all" aria-pressed="false">Tổng hợp trắc nghiệm (${GRAM.length} câu)</button>`;
+let gTrainer=null;
+function renderGram(){
+  const box=$("#g-quiz");
+  if(gPoint==="all"){$("#g-rule").hidden=true;box.className="card";runQuiz(box,()=>shuffle(GRAM));return}
+  const p=POINTS[gPoint];$("#g-rule").hidden=false;
+  $("#g-rule").innerHTML=`<div class="row"><span class="pt">${p.n}</span><span class="sub">${p.v}</span></div><ul>${p.r.map(x=>`<li>${x}</li>`).join("")}</ul>`;
+  box.className="card qbox";
+  gTrainer=makeTrainer(box,()=>GTRANS.filter(g=>g.p===gPoint));
+}
+$$("[data-gp]").forEach(b=>b.onclick=()=>{gPoint=b.dataset.gp;setPressed("[data-gp]",b);renderGram()});
+renderGram();
+
+/* ---------- 4 BUILDER ---------- */
+let bOrder=shuffle(BUILD.map((_,i)=>i)),bk=0,bScore=0;
+function renderBuild(){
+  const box=$("#b-box");
+  if(bk>=bOrder.length){box.innerHTML=`<div class="done"><div class="sub">Xếp đúng ngay lần đầu</div><div class="score">${bScore}/${bOrder.length}</div><button class="btn" style="margin-top:12px">Làm lại</button></div>`;
+    box.querySelector("button").onclick=()=>{bOrder=shuffle(bOrder);bk=0;bScore=0;renderBuild()};return}
+  const it=BUILD[bOrder[bk]];let pool=shuffle(it.t.map((t,i)=>({t,i})));
+  while(pool.length>1&&pool.every((x,j)=>x.i===j))pool=shuffle(pool);
+  let ans=[],tries=0;
+  box.innerHTML=`<div class="qmeta"><span>Câu ${bk+1}/${bOrder.length}</span><span>Đúng ngay lần đầu: ${bScore}</span></div>
+    <div class="prog"><i style="width:${bk/bOrder.length*100}%"></i></div>
+    <div class="sub">Nghĩa: <strong style="color:var(--ink)">${esc(it.v)}</strong></div>
+    <div class="tray ans" id="b-ans" aria-label="Câu của em"></div>
+    <div class="tray" id="b-pool" aria-label="Các mảnh"></div>
+    <div class="row"><span class="res" id="b-res" aria-live="polite"></span>
+      <button class="btn ghost sm" id="b-clear" style="margin-left:auto">Xoá</button>
+      <button class="btn sm" id="b-check" disabled>Kiểm tra</button></div>`;
+  function draw(){
+    $("#b-ans").innerHTML=ans.map((x,j)=>`<button class="tile" data-a="${j}">${esc(x.t)}</button>`).join("");
+    $("#b-pool").innerHTML=pool.map((x,j)=>`<button class="tile" data-p="${j}">${esc(x.t)}</button>`).join("");
+    $$("#b-ans .tile").forEach(b=>b.onclick=()=>{pool.push(ans.splice(+b.dataset.a,1)[0]);draw()});
+    $$("#b-pool .tile").forEach(b=>b.onclick=()=>{ans.push(pool.splice(+b.dataset.p,1)[0]);draw()});
+    $("#b-check").disabled=pool.length>0;
+  }
+  draw();
+  $("#b-clear").onclick=()=>{pool=pool.concat(ans);ans=[];$("#b-res").textContent="";draw()};
+  $("#b-check").onclick=()=>{
+    const s=ans.map(x=>x.t).join("");tries++;
+    if(it.a.includes(s)){
+      if(tries===1)bScore++;
+      $("#b-res").className="res ok";$("#b-res").innerHTML=`Đúng rồi: <span class="zh">${esc(it.d)}</span>`;speak(it.d);
+      $("#b-check").textContent="Câu tiếp";$("#b-check").onclick=()=>{bk++;renderBuild()};$("#b-clear").hidden=true;
+      $$("#b-ans .tile").forEach(b=>b.disabled=true);
+    }else{
+      $("#b-res").className="res bad";
+      $("#b-res").textContent=tries>=2?"Chưa đúng. Đáp án: "+it.d:"Chưa đúng, thử đổi thứ tự xem.";
+    }
+  };
+}
+renderBuild();
+
+/* ---------- 5 SPEAK ---------- */
+let sOrder=shuffle(SPEAK.map((_,i)=>i)),sk=0,sTimer=null,sLeft=60;
+function renderSpeak(){const it=SPEAK[sOrder[sk%sOrder.length]];
+  $("#s-card").innerHTML=`<div class="q">${esc(it.q)}</div><div class="v">${esc(it.v)}</div><div class="h">Gợi ý: ${esc(it.h)}</div>`}
+$("#s-next").onclick=()=>{sk++;renderSpeak()};
+$("#s-say").onclick=()=>speak(SPEAK[sOrder[sk%sOrder.length]].q);
+function fmt(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function startS(n){clearInterval(sTimer);sLeft=n;$("#s-time").textContent=fmt(sLeft);$("#s-time").classList.remove("low");
+  sTimer=setInterval(()=>{sLeft--;$("#s-time").textContent=fmt(Math.max(sLeft,0));$("#s-time").classList.toggle("low",sLeft<=10);if(sLeft<=0){clearInterval(sTimer);$("#s-time").textContent="Đổi!"}},1000)}
+$$("[data-st]").forEach(b=>b.onclick=()=>startS(+b.dataset.st));
+$("#s-stop").onclick=()=>{clearInterval(sTimer)};
+renderSpeak();
+
+let bingoState=store.get("bingo",BINGO.map(()=>""));
+const LINES=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+function renderBingo(){
+  $("#bingo").innerHTML=BINGO.map((b,i)=>`<div class="cell ${bingoState[i].trim()?"got":""}"><span class="cq">你${b[0]}嗎？</span><span class="cv">${b[1]}</span><input id="bg${i}" placeholder="Tên bạn" value="${esc(bingoState[i])}" aria-label="Tên bạn đã ${b[1]}"></div>`).join("");
+  $$("#bingo input").forEach((inp,i)=>inp.oninput=()=>{bingoState[i]=inp.value;store.set("bingo",bingoState);inp.parentElement.classList.toggle("got",!!inp.value.trim());checkBingo()});
+  checkBingo();
+}
+function checkBingo(){const n=LINES.filter(l=>l.every(i=>bingoState[i].trim())).length;
+  $("#bingo-res").className="res "+(n?"ok":"");$("#bingo-res").textContent=n?`賓果！ Đủ ${n} hàng`:`Đã có ${bingoState.filter(x=>x.trim()).length}/9 ô`}
+$("#bingo-reset").onclick=()=>{bingoState=BINGO.map(()=>"");store.set("bingo",bingoState);renderBingo()};
+$$("[data-sm]").forEach(b=>b.onclick=()=>{setPressed("[data-sm]",b);$("#s-pair").hidden=b.dataset.sm!=="pair";$("#s-bingo").hidden=b.dataset.sm!=="bingo"});
+renderBingo();
+
+go(STATIONS.some(x=>x[0]===store.get("tab",""))?store.get("tab"):"vocab");
+</script>
+
+</body>
+</html>
